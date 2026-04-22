@@ -1,0 +1,395 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
+enum Role {
+  SEEKER
+  CONSULTANT
+  ADMIN
+}
+
+enum ConsultantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
+  FAILED
+}
+
+enum SessionType {
+  VIDEO
+  AUDIO
+  CHAT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ──────────────────────────────────────────────
+// Core User
+// ──────────────────────────────────────────────
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  phone             String?   @unique
+  passwordHash      String
+  role              Role      @default(SEEKER)
+  isEmailVerified   Boolean   @default(false)
+  isPhoneVerified   Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  refreshToken      String?
+  emailVerifyToken  String?
+  passwordResetToken String?
+  passwordResetExpiry DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  seekerProfile     SeekerProfile?
+  consultantProfile ConsultantProfile?
+  bookingsAsSeeker  Booking[]          @relation("SeekerBookings")
+  sentMessages      Message[]          @relation("SentMessages")
+  receivedMessages  Message[]          @relation("ReceivedMessages")
+  reviewsGiven      Review[]           @relation("ReviewsGiven")
+  reviewsReceived   Review[]           @relation("ReviewsReceived")
+  aiSessions        AiSession[]
+  notifications     Notification[]
+  supportTickets    SupportTicket[]
+
+  @@map("users")
+}
+
+// ──────────────────────────────────────────────
+// Seeker Profile
+// ──────────────────────────────────────────────
+
+model SeekerProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName          String
+  profilePhoto      String?
+  educationLevel    String?  // 10th, 12th, UG, PG, Working Professional
+  institution       String?
+  currentYear       Int?
+  interestedDomains String[] // e.g. ["Education", "Business"]
+  preferredCountries String[]
+  bio               String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  savedConsultants  SavedConsultant[]
+
+  @@map("seeker_profiles")
+}
+
+// ──────────────────────────────────────────────
+// Consultant Profile
+// ──────────────────────────────────────────────
+
+model ConsultantProfile {
+  id                  String           @id @default(uuid())
+  userId              String           @unique
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName            String
+  profilePhoto        String?
+  bio                 String
+  consultantType      String           // Current Student, Alumni, Industry Professional
+  institution         String
+  degree              String
+  yearOfPassing       Int?
+  currentYear         Int?
+  domains             String[]
+  subSpecializations  String[]
+  countryOfInstitution String
+  linkedinUrl         String?
+  idDocumentUrl       String
+  status              ConsultantStatus @default(PENDING)
+  rejectionReason     String?
+  ratePerSession      Decimal          @db.Decimal(10, 2)
+  currency            String           @default("INR")
+  durationOptions     Int[]            // [15, 30, 45, 60] minutes
+  languages           String[]         @default(["English"])
+  totalSessions       Int              @default(0)
+  averageRating       Decimal          @default(0) @db.Decimal(3, 2)
+  responseTime        Int              @default(0) // minutes
+  isFeatured          Boolean          @default(false)
+  featuredUntil       DateTime?
+  bankAccountDetails  Json?            // encrypted
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  availability        Availability[]
+  bookings            Booking[]        @relation("ConsultantBookings")
+  savedBy             SavedConsultant[]
+
+  @@map("consultant_profiles")
+}
+
+// ──────────────────────────────────────────────
+// Availability
+// ──────────────────────────────────────────────
+
+model Availability {
+  id           String            @id @default(uuid())
+  consultantId String
+  consultant   ConsultantProfile @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+  date         DateTime          @db.Date
+  startTime    String            // "09:00"
+  endTime      String            // "10:00"
+  isBooked     Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  booking      Booking?
+
+  @@unique([consultantId, date, startTime])
+  @@map("availability_slots")
+}
+
+// ──────────────────────────────────────────────
+// Booking
+// ──────────────────────────────────────────────
+
+model Booking {
+  id              String        @id @default(uuid())
+  seekerId        String
+  seeker          User          @relation("SeekerBookings", fields: [seekerId], references: [id])
+  consultantId    String
+  consultant      ConsultantProfile @relation("ConsultantBookings", fields: [consultantId], references: [id])
+  slotId          String        @unique
+  slot            Availability  @relation(fields: [slotId], references: [id])
+  topic           String
+  agenda          String?
+  preferredLang   String        @default("English")
+  attachmentUrl   String?
+  sessionType     SessionType   @default(VIDEO)
+  durationMinutes Int
+  status          BookingStatus @default(PENDING)
+  sessionRoomUrl  String?
+  cancellationReason String?
+  cancelledAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  payment         Payment?
+  review          Review?
+  messages        Message[]
+
+  @@map("bookings")
+}
+
+// ──────────────────────────────────────────────
+// Payment
+// ──────────────────────────────────────────────
+
+model Payment {
+  id              String        @id @default(uuid())
+  bookingId       String        @unique
+  booking         Booking       @relation(fields: [bookingId], references: [id])
+  grossAmount     Decimal       @db.Decimal(10, 2)
+  commissionPct   Decimal       @db.Decimal(5, 2) @default(20.00)
+  commissionAmount Decimal      @db.Decimal(10, 2)
+  netAmount       Decimal       @db.Decimal(10, 2)
+  currency        String        @default("INR")
+  gateway         String        // razorpay | stripe | mock
+  gatewayOrderId  String?
+  gatewayPaymentId String?
+  gatewaySignature String?
+  status          PaymentStatus @default(PENDING)
+  refundId        String?
+  refundAmount    Decimal?      @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  payout          Payout?
+
+  @@map("payments")
+}
+
+// ──────────────────────────────────────────────
+// Payout (to Consultant)
+// ──────────────────────────────────────────────
+
+model Payout {
+  id          String       @id @default(uuid())
+  paymentId   String       @unique
+  payment     Payment      @relation(fields: [paymentId], references: [id])
+  consultantId String
+  amount      Decimal      @db.Decimal(10, 2)
+  currency    String       @default("INR")
+  method      String       // bank | upi
+  reference   String?
+  status      PayoutStatus @default(PENDING)
+  requestedAt DateTime     @default(now())
+  processedAt DateTime?
+
+  @@map("payouts")
+}
+
+// ──────────────────────────────────────────────
+// Review
+// ──────────────────────────────────────────────
+
+model Review {
+  id          String   @id @default(uuid())
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  reviewerId  String
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  revieweeId  String
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  rating      Int      // 1–5
+  comment     String?
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("reviews")
+}
+
+// ──────────────────────────────────────────────
+// Message
+// ──────────────────────────────────────────────
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  bookingId  String?
+  booking    Booking? @relation(fields: [bookingId], references: [id])
+  content    String
+  fileUrl    String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@map("messages")
+}
+
+// ──────────────────────────────────────────────
+// AI Chat Session
+// ──────────────────────────────────────────────
+
+model AiSession {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  title     String   @default("New Chat")
+  messages  Json     @default("[]")
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_sessions")
+}
+
+// ──────────────────────────────────────────────
+// Saved Consultants
+// ──────────────────────────────────────────────
+
+model SavedConsultant {
+  id           String            @id @default(uuid())
+  seekerId     String
+  seeker       SeekerProfile     @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  consultantId String
+  consultant   ConsultantProfile @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+  savedAt      DateTime          @default(now())
+
+  @@unique([seekerId, consultantId])
+  @@map("saved_consultants")
+}
+
+// ──────────────────────────────────────────────
+// Notifications
+// ──────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  type      String   // booking | payment | review | system
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// ──────────────────────────────────────────────
+// Support Tickets
+// ──────────────────────────────────────────────
+
+model SupportTicket {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  subject     String
+  category    String
+  description String
+  status      TicketStatus @default(OPEN)
+  resolution  String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("support_tickets")
+}
+
+// ──────────────────────────────────────────────
+// Domain Content
+// ──────────────────────────────────────────────
+
+model DomainContent {
+  id          String   @id @default(uuid())
+  slug        String   @unique // education, business, sports, etc.
+  name        String
+  description String
+  icon        String
+  coverImage  String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  articles    Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("domain_contents")
+}

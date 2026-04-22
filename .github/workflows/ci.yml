@@ -1,0 +1,134 @@
+name: CI — Lint, Test & Build
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+jobs:
+  # ─────────────────────────────────────────────
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: careerpathway
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: careerpathway_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://careerpathway:password@localhost:5432/careerpathway_test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://careerpathway:password@localhost:5432/careerpathway_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_jwt_secret_ci
+          JWT_REFRESH_SECRET: test_refresh_secret_ci
+          NODE_ENV: test
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Validate Dockerfile
+        run: docker build --target builder -t careerpathway-backend-test .
+
+  # ─────────────────────────────────────────────
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.careerpathway.com
+          NEXT_PUBLIC_APP_NAME: CareerPathway
+
+      - name: Validate Dockerfile
+        run: docker build --target builder --build-arg NEXT_PUBLIC_API_URL=https://api.careerpathway.com -t careerpathway-frontend-test .
+
+  # ─────────────────────────────────────────────
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
