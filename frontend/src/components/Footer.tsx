@@ -54,9 +54,9 @@ export default function Footer() {
           ))}
         </div>
         <div className="border-t border-white/08 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500">© 2026 CareerPathway. All rights reserved.</p>
+          <p className="text-sm text-slate-500">© 2026 Mentroo. All rights reserved.</p>
           <div className="flex items-center gap-4 text-sm text-slate-500">
-            <a href="mailto:hello@careerpathway.com" className="flex items-center gap-1.5 hover:text-purple-300 transition-colors"><Mail size={13} /> hello@careerpathway.com</a>
+            <a href="mailto:hello@mentroo.com" className="flex items-center gap-1.5 hover:text-purple-300 transition-colors"><Mail size={13} /> hello@mentroo.com</a>
             <a href="tel:+911234567890" className="flex items-center gap-1.5 hover:text-purple-300 transition-colors"><Phone size={13} /> +91 12345 67890</a>
           </div>
         </div>

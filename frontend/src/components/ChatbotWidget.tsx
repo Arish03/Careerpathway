@@ -7,7 +7,7 @@ const SUGGESTIONS = ['Which college suits me?', 'Career after 12th Science', 'Ho
 export function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'ai', content: "👋 Hi! I'm CareerPathway AI. Ask me anything about careers, colleges, or exams!" },
+    { role: 'ai', content: "👋 Hi! I'm Mentroo AI. Ask me anything about careers, colleges, or exams!" },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export function ChatbotWidget() {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#a855f7,#6366f1)' }}>
               <Bot size={18} className="text-white" />
             </div>
-            <div><p className="font-semibold text-sm">CareerPathway AI</p>
+            <div><p className="font-semibold text-sm">Mentroo AI</p>
               <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><p className="text-xs text-slate-400">Online</p></div>
             </div>
             <button onClick={() => setOpen(false)} className="ml-auto text-slate-400 hover:text-white"><ChevronDown size={16} /></button>

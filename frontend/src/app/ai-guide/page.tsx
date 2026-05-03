@@ -81,7 +81,7 @@ export default function AIGuidePage() {
             <Bot size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-base">CareerPathway AI Guide</h1>
+            <h1 className="font-bold text-base">Mentroo AI Guide</h1>
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><p className="text-xs text-slate-400">Powered by Gemini</p></div>
           </div>
           <div className="ml-auto flex gap-2">

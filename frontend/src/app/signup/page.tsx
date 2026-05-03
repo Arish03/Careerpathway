@@ -66,7 +66,7 @@ export default function SignupPage() {
           <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#a855f7,#6366f1)' }}>
             <Sparkles size={24} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Join CareerPathway</h1>
+          <h1 className="text-3xl font-bold mb-2">Join Mentroo</h1>
           <p className="text-slate-400">Start your guided career journey today</p>
         </div>
 

@@ -1,7 +1,7 @@
 import { Star, Quote } from 'lucide-react';
 
 const TESTIMONIALS = [
-  { name: 'Ananya Reddy', role: 'Got into IIM Bangalore', content: 'CareerPathway connected me with an IIM alumnus who guided my entire MBA application. Best investment I made!', rating: 5, avatar: 'AR' },
+  { name: 'Ananya Reddy', role: 'Got into IIM Bangalore', content: 'Mentroo connected me with an IIM alumnus who guided my entire MBA application. Best investment I made!', rating: 5, avatar: 'AR' },
   { name: 'Karan Patel', role: 'Now at MIT', content: 'The AI chatbot helped me shortlist universities and the consultant reviewed my SOPs. Accepted to MIT with a scholarship!', rating: 5, avatar: 'KP' },
   { name: 'Sneha Joshi', role: 'National-level Athlete', content: 'Found a sports management consultant who helped me balance athletics with academics. Changed my life!', rating: 5, avatar: 'SJ' },
 ];

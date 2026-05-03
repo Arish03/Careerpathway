@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Menu, X, Bell, ChevronDown, LogOut, Settings, BookOpen, LayoutDashboard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -42,7 +43,7 @@ export function Navbar() {
               <span className="text-white font-bold text-sm">CP</span>
             </div>
             <span className="font-bold text-lg tracking-tight">
-              Career<span className="gradient-text">Pathway</span>
+              Ment<span className="gradient-text">roo</span>
             </span>
           </Link>
 
@@ -65,6 +66,7 @@ export function Navbar() {
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {user ? (
               <>
                 <button className="relative p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors">
@@ -138,6 +140,9 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-3 flex flex-col gap-2">
+              <div className="flex justify-end mb-2">
+                <ThemeToggle />
+              </div>
               <Link href="/login" className="btn-outline text-sm text-center" onClick={() => setMobileOpen(false)}>Login</Link>
               <Link href="/signup" className="btn-primary text-sm text-center" onClick={() => setMobileOpen(false)}>Get Started</Link>
             </div>

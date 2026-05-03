@@ -7,7 +7,7 @@ import { AuthRequest } from '../middleware/auth';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-const SYSTEM_PROMPT = `You are CareerPathway AI, an expert career guidance assistant.
+const SYSTEM_PROMPT = `You are Mentroo AI, an expert career guidance assistant.
 You help students and professionals with:
 - Career path recommendations across Education, Business, Sports, Medical, Engineering, Arts, Law, Government, Research
 - College recommendations (Indian & international universities)
@@ -31,7 +31,7 @@ export const chat = async (req: Request, res: Response) => {
     const chat = model.startChat({
       history: [
         { role: 'user', parts: [{ text: contextualPrompt }] },
-        { role: 'model', parts: [{ text: "I'm CareerPathway AI, ready to guide you! How can I help with your career today?" }] },
+        { role: 'model', parts: [{ text: "I'm Mentroo AI, ready to guide you! How can I help with your career today?" }] },
         ...history.map((h: any) => ({
           role: h.role,
           parts: [{ text: h.content }],

@@ -8,7 +8,7 @@ import Testimonials from '@/components/landing/Testimonials';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'CareerPathway — Your Career Starts Here',
+  title: 'Mentroo — Your Career Starts Here',
   description: 'Get expert career guidance from consultants in Education, Business, Sports, Medical, Engineering & more. AI-powered recommendations. Book 1-on-1 sessions.',
 };
 

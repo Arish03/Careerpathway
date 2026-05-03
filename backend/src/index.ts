@@ -113,7 +113,7 @@ async function bootstrap() {
     logger.info('✅ Redis connected');
 
     server.listen(PORT, '0.0.0.0', () => {
-      logger.info(`🚀 CareerPathway API running on port ${PORT}`);
+      logger.info(`🚀 Mentroo API running on port ${PORT}`);
       logger.info(`📡 Environment: ${process.env.NODE_ENV}`);
       logger.info(`🔗 Health: http://localhost:${PORT}/health`);
     });
