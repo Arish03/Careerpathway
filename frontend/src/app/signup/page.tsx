@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { GraduationCap, Briefcase, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
+import api from '@/lib/axios';
 
 const EDUCATION_LEVELS = ['10th Grade', '12th Grade', 'Undergraduate', 'Postgraduate', 'Working Professional'];
 const DOMAINS = ['Education', 'Business', 'Sports', 'Medical', 'Engineering', 'Arts', 'Law', 'Government', 'Research'];
@@ -35,11 +36,8 @@ export default function SignupPage() {
       const payload = role === 'seeker'
         ? { ...form, interestedDomains: selectedDomains, preferredCountries: selectedCountries }
         : { ...form, domains: selectedDomains, ratePerSession: Number(form.ratePerSession), durationOptions: [30, 60] };
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      const res = await api.post(endpoint, payload);
+      const data = res.data;
       setSuccess(data.message);
     } catch (err: any) { setError(err.message); }
     finally { setLoading(false); }

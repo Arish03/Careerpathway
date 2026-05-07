@@ -33,7 +33,7 @@ const server = http.createServer(app);
 // ── Socket.IO ──────────────────────────────────────────────
 const io = new SocketServer(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true,
   },
 });
@@ -46,8 +46,8 @@ app.use(helmet({
 
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:3000',
+    process.env.FRONTEND_URL || 'http://localhost:3001',
+    'http://localhost:3001',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -105,7 +105,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ── Start Server ───────────────────────────────────────────
-const PORT = parseInt(process.env.PORT || '4000', 10);
+const PORT = parseInt(process.env.PORT || '4001', 10);
 
 async function bootstrap() {
   try {

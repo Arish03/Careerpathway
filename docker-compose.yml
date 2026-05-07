@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: careerpathway_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,7 +30,7 @@ services:
     container_name: careerpathway_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -56,7 +56,7 @@ services:
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
     ports:
-      - "4000:4000"
+      - "4001:4000"
     volumes:
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
@@ -80,10 +80,10 @@ services:
     env_file:
       - .env
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: http://localhost:4001
       NODE_ENV: development
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public

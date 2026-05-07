@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { prisma } from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { createDailyRoom } from '../utils/daily';
 
 // POST /api/payments/order
 export const createOrder = async (req: AuthRequest, res: Response) => {
@@ -49,12 +50,17 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
   // const expectedSig = crypto.createHmac('sha256', RAZORPAY_KEY_SECRET).update(`${orderId}|${paymentId}`).digest('hex');
   // if (expectedSig !== razorpaySignature) throw new AppError('Payment verification failed', 400);
 
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  if (!booking) throw new AppError('Booking not found', 404);
+  
+  const roomUrl = await createDailyRoom(booking.id, booking.durationMinutes);
+
   await prisma.$transaction([
     prisma.payment.update({
       where: { bookingId },
       data: { status: 'COMPLETED', gatewayOrderId: razorpayOrderId, gatewayPaymentId: razorpayPaymentId, gatewaySignature: razorpaySignature },
     }),
-    prisma.booking.update({ where: { id: bookingId }, data: { status: 'CONFIRMED' } }),
+    prisma.booking.update({ where: { id: bookingId }, data: { status: 'CONFIRMED', sessionRoomUrl: roomUrl } }),
   ]);
 
   res.json({ success: true, message: 'Payment verified. Booking confirmed!' });
@@ -72,6 +78,8 @@ export const mockPayment = async (req: AuthRequest, res: Response) => {
   const gross = Number(booking.consultant.ratePerSession);
   const commissionPct = 20;
 
+  const roomUrl = await createDailyRoom(booking.id, booking.durationMinutes);
+
   await prisma.$transaction([
     prisma.payment.upsert({
       where: { bookingId },
@@ -85,7 +93,7 @@ export const mockPayment = async (req: AuthRequest, res: Response) => {
         gatewayPaymentId: `mock_${Date.now()}`,
       },
     }),
-    prisma.booking.update({ where: { id: bookingId }, data: { status: 'CONFIRMED' } }),
+    prisma.booking.update({ where: { id: bookingId }, data: { status: 'CONFIRMED', sessionRoomUrl: roomUrl } }),
   ]);
 
   res.json({ success: true, message: 'Mock payment successful. Booking confirmed!' });

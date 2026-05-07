@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import api from '@/lib/axios';
 
 export default function LoginPage() {
   const [show, setShow] = useState(false);
@@ -15,12 +16,8 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      const res = await api.post('/api/auth/login', form);
+      const data = res.data;
       localStorage.setItem('token', data.data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.data.user));
       router.push(data.data.user.role === 'CONSULTANT' ? '/dashboard/consultant' : data.data.user.role === 'ADMIN' ? '/admin' : '/dashboard/seeker');

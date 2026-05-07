@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Bot, Plus, Trash2, GraduationCap, Briefcase, Trophy, Stethoscope, Cpu } from 'lucide-react';
 import Link from 'next/link';
+import api from '@/lib/axios';
 
 const SUGGESTED = [
   'Which college is best for me?', 'How to prepare for IIT JEE?',
@@ -41,11 +42,8 @@ export default function AIGuidePage() {
     setLoading(true);
     try {
       const history = messages.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', content: m.content }));
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/chat`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, history, domain }),
-      });
-      const data = await res.json();
+      const res = await api.post('/api/ai/chat', { message: msg, history, domain });
+      const data = res.data;
       setMessages(p => [...p, { role: 'ai', content: data.data?.response || 'Sorry, I could not process that.' }]);
     } catch {
       setMessages(p => [...p, { role: 'ai', content: 'Connection error. Please check your internet and try again.' }]);
@@ -96,7 +94,7 @@ export default function AIGuidePage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-10 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 md:px-10 py-6 space-y-6" onCopy={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()}>
           {messages.map((m, i) => (
             <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-up`}>
               {m.role === 'ai' && (
@@ -104,7 +102,7 @@ export default function AIGuidePage() {
                   <Sparkles size={16} className="text-white" />
                 </div>
               )}
-              <div className={`max-w-2xl ${m.role === 'user' ? 'chat-bubble-user text-white px-5 py-3.5' : 'chat-bubble-ai text-slate-200 px-5 py-4'} text-sm leading-relaxed whitespace-pre-wrap`}>
+              <div className={`max-w-2xl ${m.role === 'user' ? 'chat-bubble-user text-white px-5 py-3.5' : 'chat-bubble-ai text-slate-200 px-5 py-4 select-none pointer-events-none'} text-sm leading-relaxed whitespace-pre-wrap`}>
                 {m.content}
                 {m.role === 'ai' && i === messages.length - 1 && !loading && (
                   <div className="mt-4 pt-4 border-t border-white/08">

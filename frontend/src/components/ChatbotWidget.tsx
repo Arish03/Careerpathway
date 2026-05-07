@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Sparkles, Bot, ChevronDown } from 'lucide-react';
+import api from '@/lib/axios';
 
 const SUGGESTIONS = ['Which college suits me?', 'Career after 12th Science', 'How to crack IIT JEE?', 'Study abroad — USA'];
 
@@ -21,11 +22,8 @@ export function ChatbotWidget() {
     setMessages(p => [...p, { role: 'user', content: text }]);
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/chat`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: messages.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', content: m.content })) }),
-      });
-      const data = await res.json();
+      const res = await api.post('/api/ai/chat', { message: text, history: messages.map(m => ({ role: m.role === 'ai' ? 'model' : 'user', content: m.content })) });
+      const data = res.data;
       setMessages(p => [...p, { role: 'ai', content: data.data?.response || 'Sorry, try again.' }]);
     } catch {
       setMessages(p => [...p, { role: 'ai', content: 'Connection error. Please try the full AI Guide page.' }]);
@@ -52,11 +50,11 @@ export function ChatbotWidget() {
             <button onClick={() => setOpen(false)} className="ml-auto text-slate-400 hover:text-white"><ChevronDown size={16} /></button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3" onCopy={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()}>
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2`}>
                 {m.role === 'ai' && <div className="w-6 h-6 rounded-md flex-shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#a855f7,#6366f1)' }}><Sparkles size={11} className="text-white" /></div>}
-                <div className={`max-w-[220px] px-3 py-2.5 text-xs leading-relaxed ${m.role === 'user' ? 'chat-bubble-user text-white' : 'chat-bubble-ai text-slate-200'}`}>{m.content}</div>
+                <div className={`max-w-[220px] px-3 py-2.5 text-xs leading-relaxed ${m.role === 'user' ? 'chat-bubble-user text-white' : 'chat-bubble-ai text-slate-200 select-none pointer-events-none'}`}>{m.content}</div>
               </div>
             ))}
             {loading && (

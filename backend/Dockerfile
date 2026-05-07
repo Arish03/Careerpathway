@@ -39,7 +39,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nodeuser -u 1001
 USER nodeuser
 
 ENV NODE_ENV=production
-EXPOSE 4000
+EXPOSE 4001
 
 # Run migrations then start
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
@@ -58,6 +58,6 @@ RUN npx prisma generate
 COPY . .
 
 ENV NODE_ENV=development
-EXPOSE 4000
+EXPOSE 4001
 
 CMD ["npm", "run", "dev"]
